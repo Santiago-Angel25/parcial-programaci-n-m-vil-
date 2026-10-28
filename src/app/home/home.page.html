@@ -1,0 +1,161 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-title>Dashboard</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <p *ngIf="isLoadingOrders" class="ion-padding">Cargando órdenes...</p>
+  <p *ngIf="apiError" class="ion-padding">{{ apiError }}</p>
+
+  <ion-grid>
+    <ion-row>
+      <ion-col size="12" size-md="6">
+        <ion-card>
+          <ion-card-header>
+            <ion-card-title>Stock disponible</ion-card-title>
+          </ion-card-header>
+          <ion-card-content>
+            <p>{{ totalStock }}</p>
+          </ion-card-content>
+        </ion-card>
+      </ion-col>
+
+      <ion-col size="12" size-md="6">
+        <ion-card>
+          <ion-card-header>
+            <ion-card-title style="color: var(--ion-color-danger)">Stock crítico</ion-card-title>
+          </ion-card-header>
+          <ion-card-content>
+            <p>{{ criticalStockCount }}</p>
+          </ion-card-content>
+        </ion-card>
+      </ion-col>
+    </ion-row>
+    <ion-row>
+      <ion-col size="12">
+        <ion-card>
+          <ion-card-header>
+            <ion-card-title>Filtro de álbum </ion-card-title>
+          </ion-card-header>
+          <ion-card-content>
+            <ion-row>
+              <ion-col size="12" size-md="6">
+                <ion-item>
+                  <ion-input
+                    type="number"
+                    inputmode="numeric"
+                    label="Álbum número"
+                    labelPlacement="stacked"
+                    placeholder="Ej. 1"
+                    min="1"
+                    max="100"
+                    step="1"
+                    [(ngModel)]="albumFilter">
+                  </ion-input>
+                </ion-item>
+              </ion-col>
+            </ion-row>
+          </ion-card-content>
+        </ion-card>
+      </ion-col>
+    </ion-row>
+    <ion-row>
+      <ion-col size="12">
+        <p *ngIf="isLoadingOrders" class="ion-padding">Cargando órdenes...</p>
+        <p *ngIf="apiError" class="ion-padding">{{ apiError }}</p>
+
+        <p *ngIf="filterErrorMessage" class="ion-padding" role="alert">
+          {{ filterErrorMessage }}
+        </p>
+
+        <ion-list class="order-list" *ngIf="!isLoadingOrders && !apiError && !filterErrorMessage">
+          <ion-item
+            class="order-item"
+            button
+            detail="true"
+            *ngFor="let photo of filteredPhotos"
+            (click)="openInvoice(photo)"
+          >
+            <ion-avatar slot="start">
+              <img [src]="photo.thumbnailUrl" alt="Imagen de la orden" />
+            </ion-avatar>
+            <ion-label>
+              <h2>Orden #{{ photo.id }}: {{ photo.title }}</h2>
+              <p>Álbum: {{ photo.albumId }}</p>
+            </ion-label>
+            <ion-badge slot="end" [color]="photo.stock < 5 ? 'danger' : 'success'">
+              Stock: {{ photo.stock }}
+            </ion-badge>
+          </ion-item>
+        </ion-list>
+
+        <p
+          *ngIf="!isLoadingOrders && !apiError && !filterErrorMessage && filteredPhotos.length === 0"
+          class="ion-padding"
+        >
+          {{ albumFilter === null ? 'No hay fotos disponibles.' : 'No hay fotos para ese álbum.' }}
+        </p>
+      </ion-col>
+    </ion-row>
+  </ion-grid>
+</ion-content>
+
+<ion-modal class="invoice-modal" [isOpen]="isInvoiceOpen" (didDismiss)="onInvoiceDismiss()">
+  <ng-template>
+    <ion-header>
+      <ion-toolbar>
+        <ion-title>Actualización de inventario</ion-title>
+        <ion-buttons slot="end">
+          <ion-button (click)="closeInvoice()">Cerrar</ion-button>
+        </ion-buttons>
+      </ion-toolbar>
+    </ion-header>
+
+    <ion-content class="ion-padding invoice-content" *ngIf="selectedPhotos as photo">
+      <img [src]="photo.url" alt="Imagen de la orden" class="invoice-image" />
+      <h2>Foto #{{ photo.id }}</h2>
+
+      <ion-item>
+        <ion-input
+          label="Título"
+          labelPlacement="stacked"
+          [(ngModel)]="editTitle"
+          required
+        ></ion-input>
+      </ion-item>
+      <ion-item>
+        <ion-input
+          type="number"
+          inputmode="numeric"
+          label="Número de álbum"
+          labelPlacement="stacked"
+          min="1"
+          max="100"
+          step="1"
+          [(ngModel)]="editAlbumId"
+          required
+        ></ion-input>
+      </ion-item>
+      <ion-item>
+        <ion-input
+          type="number"
+          inputmode="numeric"
+          label="Stock"
+          labelPlacement="stacked"
+          min="0"
+          step="1"
+          [(ngModel)]="editStock"
+          required
+        ></ion-input>
+      </ion-item>
+
+      <ion-button expand="block" (click)="updatePhoto()">
+        Actualizar
+      </ion-button>
+      <ion-button expand="block" color="danger" fill="outline" (click)="resetPhoto()">
+        Eliminar
+      </ion-button>
+    </ion-content>
+  </ng-template>
+</ion-modal>
