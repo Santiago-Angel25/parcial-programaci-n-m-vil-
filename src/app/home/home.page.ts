@@ -203,29 +203,6 @@ export class HomePage implements OnInit {
       : this.Photo.filter((photo) => photo.albumId === this.albumFilter);
   }
 
-  async completeInvoice(): Promise<void> {
-    const order = this.selectedPhotos;
-    if (!order) return;
+  
 
-    if (order.stock <= 0) {
-      const alert = await this.alertController.create({
-        header: 'Stock agotado',
-        message: 'No hay unidades disponibles para esta orden.',
-        buttons: ['Aceptar'],
-      });
-      await alert.present();
-      return;
-    }
-
-    order.stock -= 1;
-    this.closeInvoice();
-
-    const toast = await this.toastController.create({
-      message: `Factura completada. Stock restante: ${order.stock}.`,
-      duration: 2500,
-      color: 'success',
-      position: 'bottom',
-    });
-    await toast.present();
-  }
 }
